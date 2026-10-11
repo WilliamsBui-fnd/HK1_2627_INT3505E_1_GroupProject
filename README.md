@@ -94,9 +94,3 @@ python -m openapi_spec_validator openapi.yaml
 Đã chạy: **3 test đạt** (chứa nhiều trường hợp), `openapi.yaml: OK`. Test kiểm tra chuẩn 3.0.3, JSON spec khớp YAML, cấu hình docs, CRUD, lọc, giới hạn, token, dữ liệu sai và request lỗi không làm thay đổi task. Response được đối chiếu với schema/status trong đặc tả.
 
 Chưa xác minh thao tác Try it out trên trình duyệt và chưa có ảnh: trình duyệt tích hợp của môi trường thực hiện chặn localhost. Làm theo các bước trên để bổ sung ảnh thật trước khi nộp.
-
-## Giới hạn và nộp bài
-
-Dữ liệu trong bộ nhớ, mất khi tắt app; khóa bảo vệ thao tác trong một process. Chạy một process để demo. Không có database, đăng nhập hay phân quyền từng người; không dùng dữ liệu thật hoặc triển khai công khai với token demo.
-
-Chưa đẩy lên GitHub do chưa có repo nhóm đích. Đưa mã nguồn và ảnh thật lên repo nhóm, không đưa `.venv/` hoặc token riêng. File tham chiếu của dự án không bị chỉnh sửa.
