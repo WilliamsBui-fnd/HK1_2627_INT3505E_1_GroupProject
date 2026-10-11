@@ -1,8 +1,16 @@
 # Tasks API — Bài tập B4
 
-Flask + OpenAPI **3.0.3** + Swagger UI, dựa trên đề ở slide B4 trang 22–23 và bài tập về nhà trang 33.
+Đây là REST API đơn giản để quản lý công việc, được xây dựng bằng Flask và mô tả bằng OpenAPI 3.0.3. Dự án có sẵn Swagger UI để xem tài liệu và thử API trực tiếp trên trình duyệt.
 
-## Cấu trúc
+## Chức năng chính
+
+- Thêm, xem, cập nhật và xóa task.
+- Lọc task theo trạng thái và giới hạn số lượng kết quả.
+- Xác thực các endpoint bằng Bearer token.
+- Kiểm tra dữ liệu đầu vào theo schema trong `openapi.yaml`.
+- Trả lỗi theo định dạng `application/problem+json`.
+
+## Cấu trúc thư mục
 
 ```text
 tasks-api/
@@ -12,14 +20,13 @@ tasks-api/
 ├── requirements.txt
 ├── requirements-dev.txt
 ├── test_app.py
-├── screenshots/
 ├── .gitignore
 └── README.md
 ```
 
 ## Cài đặt và chạy
 
-Python 3.10 trở lên. Mở terminal trong `tasks-api/`:
+Yêu cầu Python 3.10 trở lên.
 
 ```sh
 python3 -m venv .venv
@@ -28,69 +35,78 @@ python -m pip install -r requirements-dev.txt
 python app.py
 ```
 
-Mở http://127.0.0.1:5000/docs để xem Swagger UI; http://127.0.0.1:5000/openapi.json trả đặc tả JSON. Cần Internet để tải Swagger UI từ CDN. Nếu cổng 5000 bận, dùng `python -m flask --app app run --port 5001`, mở docs trên cổng 5001.
+Sau khi chạy, truy cập:
 
-## Try it out và ảnh nộp bài
+- Swagger UI: http://127.0.0.1:5000/docs
+- OpenAPI JSON: http://127.0.0.1:5000/openapi.json
 
-1. Mở `/docs`, chọn **Authorize**, nhập `demo-token` (không thêm `Bearer`), chọn **Authorize**, rồi **Close**.
-2. Mở **POST /tasks**, chọn **Try it out**, nhập body rồi **Execute**:
+Nếu cổng `5000` đang được sử dụng, có thể đổi sang cổng khác:
 
-   ```json
-   {"title":"Hoàn thành bài tập B4","priority":"high","dueDate":"2026-10-18"}
-   ```
+```sh
+python -m flask --app app run --port 5001
+```
 
-3. Kiểm tra **201**, header `Location`, body có UUID `id`. Sao chép ID này.
-4. Chạy **GET /tasks** và **GET /tasks/{taskId}**: nhận **200**, thấy task vừa tạo.
-5. Chạy **PATCH /tasks/{taskId}** với `{"status":"done"}`: nhận **200**, tiêu đề giữ nguyên.
-6. Chạy **DELETE /tasks/{taskId}**: nhận **204**, không có body. GET lại nhận **404**.
-7. Chụp màn hình có Request URL, Server response **201/200** và body; lưu `screenshots/try-it-out.png` để nộp.
+## Thử API bằng Swagger UI
 
-Token được kiểm tra thật ở cả 5 endpoint. Đây là token demo cố định, **không phải JWT**. Có thể thay bằng biến môi trường trước khi chạy:
+Nhấn **Authorize** và nhập token `demo-token` (không cần thêm chữ `Bearer`). Sau đó có thể thử lần lượt các endpoint ngay trên Swagger UI.
+
+Ví dụ body để tạo task:
+
+```json
+{
+  "title": "Hoàn thành bài tập B4",
+  "priority": "high",
+  "dueDate": "2026-10-18"
+}
+```
+
+Token mặc định có thể thay đổi bằng biến môi trường:
 
 ```sh
 export TASKS_API_TOKEN='token-rieng-cua-ban'
 python app.py
 ```
 
-Không đưa token riêng lên Git. `/docs` và `/openapi.json` không yêu cầu token.
+Không đưa token riêng lên GitHub. Hai đường dẫn `/docs` và `/openapi.json` không yêu cầu xác thực.
 
-## Hợp đồng API
+## Các endpoint
 
 | Method | Path | Thành công | Chức năng |
 |---|---|---|---|
-| GET | `/tasks` | 200 | `{items, total}`, lọc status, giới hạn limit |
-| POST | `/tasks` | 201 + Location | Tạo task, server sinh UUID |
-| GET | `/tasks/{taskId}` | 200 | Đọc task |
-| PATCH | `/tasks/{taskId}` | 200 | Sửa một phần |
-| DELETE | `/tasks/{taskId}` | 204 | Xóa, không có body |
+| GET | `/tasks` | 200 | Lấy danh sách task |
+| POST | `/tasks` | 201 | Tạo task mới |
+| GET | `/tasks/{taskId}` | 200 | Lấy chi tiết một task |
+| PATCH | `/tasks/{taskId}` | 200 | Cập nhật một phần task |
+| DELETE | `/tasks/{taskId}` | 204 | Xóa task |
 
-Task gồm `id`, `title`, `status`, `priority` và hai trường tùy chọn `dueDate`, `assigneeId`. Khi tạo, `title` bắt buộc và không được chỉ có khoảng trắng; `status` mặc định `open` (enum `open/done`), `priority` mặc định `normal` (enum `low/normal/high`). `dueDate` là ngày hợp lệ `YYYY-MM-DD`; `assigneeId` là UUID, chưa kiểm tra người được giao có tồn tại.
+Mỗi task gồm `id`, `title`, `status`, `priority` và hai trường không bắt buộc là `dueDate`, `assigneeId`.
 
-GET mặc định lấy mọi trạng thái, tối đa 10 task; `limit` từ 1 đến 100. `total` tính sau lọc nhưng trước giới hạn. Task theo thứ tự tạo; chưa có offset/cursor.
+- `status`: `open` hoặc `done`, mặc định là `open`.
+- `priority`: `low`, `normal` hoặc `high`, mặc định là `normal`.
+- `dueDate`: ngày theo định dạng `YYYY-MM-DD`.
+- `assigneeId`: chuỗi UUID.
 
-Lỗi dùng `application/problem+json` với `type`, `title`, `status`, `detail`: **400** khi JSON/null, Content-Type, query hoặc UUID đường dẫn sai; **401** thiếu/sai token; **404** không tìm thấy; **422** khi body sai schema, có trường lạ hoặc PATCH rỗng.
+`GET /tasks` hỗ trợ hai query parameter là `status` và `limit`. Giá trị `limit` nằm trong khoảng từ 1 đến 100, mặc định là 10.
 
-## Hai quyết định thiết kế khó nhất
+## Một số lựa chọn thiết kế
 
-### 1. Tách dữ liệu tạo và cập nhật
+### Tách schema tạo và cập nhật task
 
-Dùng chung schema bắt buộc `title` sẽ khiến PATCH đổi trạng thái cũng phải gửi lại tiêu đề. Vì vậy `CreateTaskInput` bắt buộc `title`, còn `UpdateTaskInput` cho phép từng trường riêng lẻ nhưng phải có ít nhất một trường. PATCH chỉ sửa trường được gửi, giữ nguyên phần còn lại và không áp lại giá trị mặc định. `id` do server quản lý; từ chối `id`, trường lạ và `null` trong input. Bản đơn giản chưa hỗ trợ xóa riêng dueDate/assigneeId.
+Khi tạo task, trường `title` là bắt buộc. Khi cập nhật bằng `PATCH`, người dùng chỉ cần gửi những trường muốn thay đổi. Vì vậy dự án dùng hai schema riêng là `CreateTaskInput` và `UpdateTaskInput` thay vì dùng chung một schema cho cả hai trường hợp.
 
-`Task` được tái sử dụng qua `$ref` trong phản hồi tạo/đọc/sửa và danh sách. `TaskId` dùng chung ở path-level; `PageLimit`, `StatusFilter` ở `components.parameters`. Các response thành công/lỗi nằm ở `components.responses`. Thuộc tính input được viết rõ, tránh kết hợp `allOf` và `additionalProperties: false` gây khó hiểu trong OpenAPI 3.0.
+Các thành phần dùng lại như `Task`, parameter và response được khai báo trong `components` của OpenAPI để tránh lặp lại nội dung.
 
-### 2. Giữ YAML là nguồn chung cho đặc tả, docs và validation
+### Dùng `openapi.yaml` làm đặc tả chung
 
-Bài tập yêu cầu tự viết YAML, nên Flask đọc chính file đó để trả `/openapi.json`; Swagger UI tải JSON này. Kiểm tra body dùng schema trong YAML bằng `jsonschema`, tránh duy trì thêm bộ validation thủ công. Schema ở đây dùng tập từ khóa tương thích JSON Schema Draft 4; đây không phải bộ xử lý toàn bộ OpenAPI, ví dụ cần xử lý thêm nếu dùng `nullable`.
-
-Không thêm apispec/flask-smorest vì chưa cần sinh spec từ code. `servers: /` giúp Try it out gọi đúng origin/cổng hiện tại mà không cần CORS. Giữ đường dẫn `/tasks` đúng yêu cầu thay vì tiền tố `/v1` trong ví dụ slide. Có Bearer auth đơn giản nhưng không khai báo `bearerFormat: JWT` vì chưa triển khai JWT.
+Ứng dụng đọc trực tiếp `openapi.yaml` để trả về `/openapi.json`, hiển thị Swagger UI và kiểm tra dữ liệu đầu vào. Cách này giúp phần mô tả API và phần xử lý trong ứng dụng thống nhất với nhau.
 
 ## Kiểm thử
+
+Chạy test và kiểm tra file OpenAPI bằng các lệnh sau:
 
 ```sh
 python -m unittest -v
 python -m openapi_spec_validator openapi.yaml
 ```
 
-Đã chạy: **3 test đạt** (chứa nhiều trường hợp), `openapi.yaml: OK`. Test kiểm tra chuẩn 3.0.3, JSON spec khớp YAML, cấu hình docs, CRUD, lọc, giới hạn, token, dữ liệu sai và request lỗi không làm thay đổi task. Response được đối chiếu với schema/status trong đặc tả.
-
-Chưa xác minh thao tác Try it out trên trình duyệt và chưa có ảnh: trình duyệt tích hợp của môi trường thực hiện chặn localhost. Làm theo các bước trên để bổ sung ảnh thật trước khi nộp.
+Bộ test kiểm tra các thao tác CRUD, lọc danh sách, giới hạn kết quả, Bearer token, dữ liệu không hợp lệ và cấu trúc response theo đặc tả OpenAPI.
