@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info: {title: Tasks API, version: 1.0.0}
+servers:
+  - {url: /}
+tags:
+  - {name: tasks}
+security:
+  - bearerAuth: []
+paths:
+  /tasks:
+    get:
+      tags: [tasks]
+      operationId: listTasks
+      responses:
+        '200': {$ref: '#/components/responses/TaskPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+      parameters:
+        - {$ref: '#/components/parameters/PageLimit'}
+        - {$ref: '#/components/parameters/StatusFilter'}
+    post:
+      tags: [tasks]
+      operationId: createTask
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateTaskInput'}
+  /tasks/{taskId}:
+    parameters:
+      - {$ref: '#/components/parameters/TaskId'}
+    get:
+      tags: [tasks]
+      operationId: getTaskById
+      responses:
+        '200': {$ref: '#/components/responses/Task'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [tasks]
+      operationId: patchTask
+      responses:
+        '200': {$ref: '#/components/responses/Task'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdateTaskInput'}
+    delete:
+      tags: [tasks]
+      operationId: deleteTask
+      responses:
+        '204': {$ref: '#/components/responses/NoContent'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {$ref: '#/components/responses/NotFound'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, description: 'Token demo: demo-token'}
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    PageLimit:
+      name: limit
+      in: query
+      schema: {type: integer, minimum: 1, maximum: 100, default: 10}
+    StatusFilter:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum: [open, done]
+  schemas:
+    Task:
+      type: object
+      additionalProperties: false
+      required: [id, title, status, priority]
+      properties:
+        id: {type: string, format: uuid}
+        title: {type: string, minLength: 1, pattern: \S}
+        status:
+          type: string
+          enum: [open, done]
+        priority:
+          type: string
+          enum: [low, normal, high]
+        dueDate: {type: string, format: date}
+        assigneeId: {type: string, format: uuid}
+    CreateTaskInput:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title: {type: string, minLength: 1, pattern: \S}
+        status:
+          type: string
+          enum: [open, done]
+        priority:
+          type: string
+          enum: [low, normal, high]
+        dueDate: {type: string, format: date}
+        assigneeId: {type: string, format: uuid}
+    UpdateTaskInput:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: {type: string, minLength: 1, pattern: \S}
+        status:
+          type: string
+          enum: [open, done]
+        priority:
+          type: string
+          enum: [low, normal, high]
+        dueDate: {type: string, format: date}
+        assigneeId: {type: string, format: uuid}
+    TaskPage:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Task'}
+        total: {type: integer, minimum: 0}
+    Error:
+      type: object
+      required: [type, title, status, detail]
+      properties:
+        type: {type: string, format: uri}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+  responses:
+    Task:
+      description: Task hiện tại
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Task'}
+    Created:
+      description: Đã tạo task
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Task'}
+      headers:
+        Location:
+          description: Đường dẫn task vừa tạo
+          schema: {type: string}
+    TaskPage:
+      description: items bị giới hạn bởi limit; total là số task khớp bộ lọc
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/TaskPage'}
+    NoContent: {description: Đã xóa task; không có body}
+    BadRequest:
+      description: JSON, Content-Type hoặc tham số không hợp lệ
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Unauthorized:
+      description: Thiếu hoặc sai Bearer token
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+      headers:
+        WWW-Authenticate:
+          schema: {type: string}
+    NotFound:
+      description: Không tìm thấy task
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
+    ValidationError:
+      description: JSON không đúng schema
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Error'}
