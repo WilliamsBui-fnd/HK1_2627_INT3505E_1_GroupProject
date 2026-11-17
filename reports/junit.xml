@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Tasks API — B8 Homework" tests="10" time="0.238">
+  <testsuite name="GET /tasks" id="0b8bb8e0-c08e-421e-bf05-e53a758f39f7" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.125">
+    <testcase name="200 and task page" time="0.125" classname="GetTasks"/>
+  </testsuite>
+  <testsuite name="POST /tasks — create" id="3dbcb945-16c6-4edf-9ceb-975d15a2ca25" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.019">
+    <testcase name="201 and created task" time="0.019" classname="PostTasksCreate"/>
+  </testsuite>
+  <testsuite name="GET /tasks/{taskId} — read" id="fc890f3b-e698-4606-9bfa-b1a1515b41ba" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.019">
+    <testcase name="200 and expected task" time="0.019" classname="GetTasksTaskIdRead"/>
+  </testsuite>
+  <testsuite name="PATCH /tasks/{taskId} — update" id="bc506b70-ecb6-47c1-8604-b11fe87a0cb7" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.009">
+    <testcase name="200 and updated status" time="0.009" classname="PatchTasksTaskIdUpdate"/>
+  </testsuite>
+  <testsuite name="GET /tasks — filter" id="981fcb1d-cb57-4d93-9ea9-43e41826bf08" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.010">
+    <testcase name="200 and status filter" time="0.010" classname="GetTasksFilter"/>
+  </testsuite>
+  <testsuite name="DELETE /tasks/{taskId}" id="26cb863f-0311-4ea6-8114-fe8369c2a7e1" timestamp="2026-11-17T17:32:23.909Z" tests="1" failures="0" errors="0" time="0.019">
+    <testcase name="204 and empty body" time="0.019" classname="DeleteTasksTaskId"/>
+  </testsuite>
+  <testsuite name="GET deleted task — 404" id="492d5120-dc3e-47ca-91fe-bba4f10f086d" timestamp="2026-11-17T17:32:23.909Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="Status 404" time="0.007" classname="GetDeletedTask404"/>
+    <testcase name="Problem JSON" time="0.007" classname="GetDeletedTask404"/>
+  </testsuite>
+  <testsuite name="GET without token — 401" id="5f30c32b-a5d6-4ec8-b220-9a8271c3dba5" timestamp="2026-11-17T17:32:23.909Z" tests="3" failures="0" errors="0" time="0.008">
+    <testcase name="Status 401" time="0.008" classname="GetWithoutToken401"/>
+    <testcase name="Problem JSON" time="0.008" classname="GetWithoutToken401"/>
+    <testcase name="Bearer challenge" time="0.008" classname="GetWithoutToken401"/>
+  </testsuite>
+  <testsuite name="POST missing title — 422" id="9d5c4eec-3814-4f60-98e1-54d816c7233a" timestamp="2026-11-17T17:32:23.909Z" tests="2" failures="0" errors="0" time="0.010">
+    <testcase name="Status 422" time="0.010" classname="PostMissingTitle422"/>
+    <testcase name="Problem JSON" time="0.010" classname="PostMissingTitle422"/>
+  </testsuite>
+  <testsuite name="GET invalid limit — 400" id="f8f97123-3d33-4bb2-b4bb-c06e324589ba" timestamp="2026-11-17T17:32:23.909Z" tests="2" failures="0" errors="0" time="0.012">
+    <testcase name="Status 400" time="0.012" classname="GetInvalidLimit400"/>
+    <testcase name="Problem JSON" time="0.012" classname="GetInvalidLimit400"/>
+  </testsuite>
+</testsuites>
